@@ -4,10 +4,17 @@ from app.models.game import Game
 from app.models.prediction import Prediction
 from app.api_handlers.espn_api import ESPNAPI
 from app.api_handlers.balldontlie_api import BallDontLieAPI
-from app.analysis.predictor import NFLPredictor
 from app import db
 from datetime import datetime, timedelta
 import json
+
+# Try to import the advanced predictor, fall back to simple version if needed
+try:
+    from app.analysis.predictor import NFLPredictor
+    print("✅ Using advanced ML predictor")
+except ImportError as e:
+    print(f"⚠️ Advanced ML predictor not available ({e}), using fallback")
+    from app.analysis.predictor_fallback import NFLPredictor
 
 @bp.route('/')
 def index():
