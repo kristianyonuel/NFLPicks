@@ -115,18 +115,33 @@ setup_venv() {
 install_packages() {
     echo "📦 Installing Python packages..."
     
-    # Check if requirements.txt exists
-    if [ ! -f "requirements.txt" ]; then
-        echo "❌ requirements.txt not found!"
-        echo "Please ensure you're in the correct directory with requirements.txt"
-        exit 1
+    # Try server-optimized requirements first
+    if [ -f "requirements_server.txt" ]; then
+        echo "📥 Trying server-optimized requirements..."
+        if pip install -r requirements_server.txt --prefer-binary --no-cache-dir; then
+            echo "✅ Server-optimized packages installed"
+            return 0
+        else
+            echo "⚠️ Server-optimized requirements failed, trying standard requirements..."
+        fi
     fi
     
-    # Install packages
-    echo "📥 Installing packages from requirements.txt..."
-    pip install -r requirements.txt
-    
-    echo "✅ All packages installed"
+    # Fall back to standard requirements
+    if [ -f "requirements.txt" ]; then
+        echo "📥 Installing packages from requirements.txt..."
+        if pip install -r requirements.txt --prefer-binary --no-cache-dir; then
+            echo "✅ Standard packages installed"
+            return 0
+        else
+            echo "❌ Failed to install packages!"
+            echo "💡 Try running the robust installer: ./install_server.sh"
+            return 1
+        fi
+    else
+        echo "❌ No requirements file found!"
+        echo "Please ensure you're in the correct directory with requirements.txt"
+        return 1
+    fi
 }
 
 # Function to setup database

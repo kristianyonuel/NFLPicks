@@ -156,27 +156,38 @@ class NFLPicksSetup:
         return True
         
     def install_packages(self):
-        """Install Python packages from requirements.txt."""
+        """Install Python packages with robust error handling."""
         print("📦 Installing Python packages...")
         
-        # Check if requirements.txt exists
-        if not os.path.exists('requirements.txt'):
-            print("❌ requirements.txt not found!")
-            print("Please ensure you're in the correct directory with requirements.txt")
-            return False
-            
-        # Install packages
-        print("📥 Installing packages from requirements.txt...")
-        try:
-            pip_exe = self._get_pip_command()
-            subprocess.run([pip_exe, 'install', '-r', 'requirements.txt'], 
-                          check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to install packages: {e}")
-            return False
-            
-        print("✅ All packages installed")
-        return True
+        pip_exe = self._get_pip_command()
+        
+        # Try server-optimized requirements first
+        if os.path.exists('requirements_server.txt'):
+            print("📥 Trying server-optimized requirements...")
+            try:
+                subprocess.run([pip_exe, 'install', '-r', 'requirements_server.txt', 
+                              '--prefer-binary', '--no-cache-dir'], check=True)
+                print("✅ Server-optimized packages installed")
+                return True
+            except subprocess.CalledProcessError:
+                print("⚠️ Server-optimized requirements failed, trying standard requirements...")
+        
+        # Fall back to standard requirements
+        if os.path.exists('requirements.txt'):
+            print("📥 Installing packages from requirements.txt...")
+            try:
+                subprocess.run([pip_exe, 'install', '-r', 'requirements.txt',
+                              '--prefer-binary', '--no-cache-dir'], check=True)
+                print("✅ Standard packages installed")
+                return True
+            except subprocess.CalledProcessError as e:
+                print(f"❌ Failed to install packages: {e}")
+                print("💡 Try running the robust installer: python install_server.py")
+                return False
+        
+        print("❌ No requirements file found!")
+        print("Please ensure you're in the correct directory with requirements.txt")
+        return False
         
     def setup_database(self):
         """Setup the database."""
