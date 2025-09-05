@@ -368,3 +368,150 @@ def enhanced_analysis():
             'error': str(e),
             'enhanced_analysis': []
         })
+
+@bp.route('/api/auto-populate-reddit')
+def auto_populate_reddit():
+    """Auto-populate comprehensive Reddit picks analysis"""
+    try:
+        from app.api_handlers.reddit_api import RedditAPI
+        reddit_api = RedditAPI()
+        
+        # Run comprehensive auto-population
+        comprehensive_data = reddit_api.auto_populate_comprehensive_picks()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Comprehensive Reddit analysis completed',
+            **comprehensive_data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Failed to auto-populate Reddit analysis'
+        })
+
+@bp.route('/api/reddit-comprehensive')
+def reddit_comprehensive():
+    """Get comprehensive Reddit analysis with enhanced metrics"""
+    try:
+        from app.api_handlers.reddit_api import RedditAPI
+        reddit_api = RedditAPI()
+        
+        # Get comprehensive sentiment analysis
+        comprehensive_data = reddit_api.get_nfl_sentiment()
+        
+        # Enhanced response with detailed breakdown
+        return jsonify({
+            'success': True,
+            'comprehensive_analysis': comprehensive_data,
+            'enhanced_metrics': {
+                'analysis_depth': comprehensive_data.get('analysis_depth', 'standard'),
+                'data_quality': 'high' if comprehensive_data.get('posts_analyzed', 0) > 50 else 'medium',
+                'coverage_score': len(comprehensive_data.get('subreddits_analyzed', [])) * 20,
+                'reliability_score': min(comprehensive_data.get('total_mentions', 0) * 2, 100)
+            },
+            'recommendations': {
+                'most_mentioned_teams': sorted(
+                    comprehensive_data.get('team_picks', {}).items(),
+                    key=lambda x: x[1].get('mentions', 0),
+                    reverse=True
+                )[:5],
+                'highest_confidence_picks': [
+                    team for team, data in comprehensive_data.get('team_picks', {}).items()
+                    if 'high' in data.get('confidence_indicators', [])
+                ]
+            },
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'comprehensive_analysis': {},
+            'enhanced_metrics': {},
+            'recommendations': {}
+        })
+
+@bp.route('/api/reddit-comprehensive-cached')
+def reddit_comprehensive_cached():
+    """Get cached comprehensive Reddit analysis (updated every hour)"""
+    try:
+        from app.api_handlers.reddit_api import RedditAPI
+        reddit_api = RedditAPI()
+        
+        cached_data = reddit_api.get_cached_comprehensive_data()
+        
+        return jsonify({
+            'success': True,
+            'cached_data': cached_data,
+            'data_freshness': cached_data.get('last_updated'),
+            'total_posts': cached_data.get('total_posts_analyzed', 0),
+            'total_comments': cached_data.get('total_comments_analyzed', 0),
+            'auto_updated': True,
+            'update_frequency': 'Every hour'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@bp.route('/api/reddit-force-update')
+def reddit_force_update():
+    """Force immediate comprehensive Reddit update"""
+    try:
+        from app.api_handlers.reddit_api import RedditAPI
+        reddit_api = RedditAPI()
+        
+        # Force update (this may take a while)
+        updated_data = reddit_api.force_comprehensive_update()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Comprehensive Reddit data updated successfully',
+            'updated_data': updated_data,
+            'total_posts': updated_data.get('total_posts_analyzed', 0),
+            'total_comments': updated_data.get('total_comments_analyzed', 0),
+            'last_updated': updated_data.get('last_updated')
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@bp.route('/api/reddit-background-status')
+def reddit_background_status():
+    """Get status of background Reddit processing"""
+    try:
+        from app.api_handlers.reddit_api import RedditAPI
+        reddit_api = RedditAPI()
+        
+        cached_data = reddit_api.get_cached_comprehensive_data()
+        
+        # Check if cache file exists
+        import os
+        cache_exists = os.path.exists('reddit_cache.json')
+        
+        return jsonify({
+            'success': True,
+            'background_running': reddit_api.background_running,
+            'cache_exists': cache_exists,
+            'last_updated': cached_data.get('last_updated'),
+            'total_posts_analyzed': cached_data.get('total_posts_analyzed', 0),
+            'total_comments_analyzed': cached_data.get('total_comments_analyzed', 0),
+            'next_update': 'Within the next hour',
+            'update_frequency': '1 hour',
+            'status': 'Active' if reddit_api.background_running else 'Inactive'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })

@@ -333,3 +333,336 @@ function displayEnhancedAnalysis(analysisData) {
         </div>
     `;
 }
+
+// Auto-populate comprehensive Reddit analysis
+function autoPopulateRedditPicks() {
+    const btn = document.getElementById('auto-populate-btn');
+    if (btn) {
+        btn.textContent = 'Analyzing Reddit... (This may take 30-60 seconds)';
+        btn.disabled = true;
+    }
+
+    // Show progress indicator
+    showAnalysisProgress();
+
+    fetch('/api/auto-populate-reddit')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayComprehensiveAnalysis(data);
+                showSuccessMessage(`Analysis complete! Analyzed ${data.analysis_summary?.total_posts_analyzed || 'many'} posts from ${data.analysis_summary?.subreddits_covered || 'multiple'} subreddits.`);
+            } else {
+                console.error('Auto-populate failed:', data.error);
+                alert('Failed to auto-populate Reddit analysis: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error auto-populating Reddit picks:', error);
+            alert('Error auto-populating Reddit picks: ' + error.message);
+        })
+        .finally(() => {
+            if (btn) {
+                btn.textContent = '🚀 Auto-Populate Comprehensive Analysis';
+                btn.disabled = false;
+            }
+            hideAnalysisProgress();
+        });
+}
+
+function showAnalysisProgress() {
+    const progressDiv = document.createElement('div');
+    progressDiv.id = 'analysis-progress';
+    progressDiv.className = 'analysis-progress';
+    progressDiv.innerHTML = `
+        <div class="progress-content">
+            <div class="spinner"></div>
+            <h3>Comprehensive Reddit Analysis in Progress</h3>
+            <p>Analyzing posts from r/nfl, r/NFLbets, r/sportsbook, and more...</p>
+            <div class="progress-steps">
+                <div class="step active">Fetching posts</div>
+                <div class="step">Analyzing sentiment</div>
+                <div class="step">Processing picks</div>
+                <div class="step">Generating insights</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(progressDiv);
+    
+    // Animate progress steps
+    let stepIndex = 0;
+    const steps = progressDiv.querySelectorAll('.step');
+    const progressInterval = setInterval(() => {
+        if (stepIndex < steps.length) {
+            steps[stepIndex].classList.add('active');
+            stepIndex++;
+        } else {
+            clearInterval(progressInterval);
+        }
+    }, 8000);
+}
+
+function hideAnalysisProgress() {
+    const progressDiv = document.getElementById('analysis-progress');
+    if (progressDiv) {
+        progressDiv.remove();
+    }
+}
+
+function displayComprehensiveAnalysis(data) {
+    const container = document.getElementById('comprehensive-analysis-container') || createComprehensiveContainer();
+    
+    const summary = data.analysis_summary || {};
+    const analysis = data.comprehensive_analysis || {};
+    const gameSpecific = data.game_specific_picks || [];
+    
+    container.innerHTML = `
+        <h3>🏈 Comprehensive Reddit NFL Analysis</h3>
+        
+        <div class="analysis-overview">
+            <div class="metric-card">
+                <h4>${summary.total_posts_analyzed || 0}</h4>
+                <p>Posts Analyzed</p>
+            </div>
+            <div class="metric-card">
+                <h4>${summary.subreddits_covered || 0}</h4>
+                <p>Subreddits</p>
+            </div>
+            <div class="metric-card">
+                <h4>${summary.team_mentions_found || 0}</h4>
+                <p>Team Mentions</p>
+            </div>
+            <div class="metric-card">
+                <h4>${summary.confidence_level || 'Unknown'}</h4>
+                <p>Confidence Level</p>
+            </div>
+        </div>
+        
+        <div class="subreddit-breakdown">
+            <h4>📊 Data Sources</h4>
+            <div class="source-grid">
+                ${(analysis.data_sources || []).map(source => `
+                    <div class="source-card">
+                        <strong>r/${source.subreddit}</strong>
+                        <p>${source.posts_found} posts found</p>
+                        <p>${source.relevant_posts} relevant</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="top-picks">
+            <h4>🔥 Top Reddit Picks</h4>
+            <div class="picks-grid">
+                ${Object.entries(analysis.team_picks || {})
+                    .sort(([,a], [,b]) => (b.popularity || 0) - (a.popularity || 0))
+                    .slice(0, 8)
+                    .map(([team, data]) => `
+                        <div class="pick-card">
+                            <h5>${team}</h5>
+                            <p><strong>Mentions:</strong> ${data.mentions}</p>
+                            <p><strong>Score:</strong> ${(data.popularity || 0).toFixed(1)}</p>
+                            <p><strong>Sources:</strong> ${Object.keys(data.subreddit_sources || {}).length} subreddits</p>
+                            ${data.confidence_indicators?.includes('high') ? '<span class="high-confidence">🔥 High Confidence</span>' : ''}
+                        </div>
+                    `).join('')}
+            </div>
+        </div>
+        
+        <div class="game-specific">
+            <h4>🎯 Game-Specific Analysis</h4>
+            <div class="games-grid">
+                ${gameSpecific.map(game => `
+                    <div class="game-analysis-card">
+                        <h5>${game.away_team} @ ${game.home_team}</h5>
+                        <p><strong>Reddit Favorite:</strong> ${game.picks?.reddit_favorite || 'Even'}</p>
+                        <p><strong>Confidence:</strong> ${((game.picks?.confidence || 0) * 100).toFixed(1)}%</p>
+                        <p><strong>Total Mentions:</strong> ${game.picks?.total_mentions || 0}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function createComprehensiveContainer() {
+    const container = document.createElement('div');
+    container.id = 'comprehensive-analysis-container';
+    container.className = 'comprehensive-analysis';
+    document.querySelector('.container').appendChild(container);
+    return container;
+}
+
+function showSuccessMessage(message) {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.textContent = message;
+    document.body.appendChild(successDiv);
+    
+    setTimeout(() => {
+        successDiv.remove();
+    }, 5000);
+}
+
+// Background Reddit processing functionality
+function checkRedditBackgroundStatus() {
+    fetch('/api/reddit-background-status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateBackgroundStatusDisplay(data);
+            }
+        })
+        .catch(error => console.error('Error checking background status:', error));
+}
+
+function updateBackgroundStatusDisplay(statusData) {
+    const statusContainer = document.getElementById('reddit-background-status');
+    if (!statusContainer) {
+        // Create status container if it doesn't exist
+        const newContainer = document.createElement('div');
+        newContainer.id = 'reddit-background-status';
+        newContainer.className = 'background-status';
+        document.querySelector('.reddit-summary').appendChild(newContainer);
+    }
+    
+    const container = document.getElementById('reddit-background-status');
+    container.innerHTML = `
+        <div class="status-card">
+            <h4>🔄 Auto Reddit Analysis Status</h4>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Status:</span>
+                    <span class="status-value ${statusData.status.toLowerCase()}">${statusData.status}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Posts Analyzed:</span>
+                    <span class="status-value">${statusData.total_posts_analyzed.toLocaleString()}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Comments Analyzed:</span>
+                    <span class="status-value">${statusData.total_comments_analyzed.toLocaleString()}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Last Updated:</span>
+                    <span class="status-value">${statusData.last_updated ? new Date(statusData.last_updated).toLocaleString() : 'Never'}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Update Frequency:</span>
+                    <span class="status-value">${statusData.update_frequency}</span>
+                </div>
+            </div>
+            <div class="status-actions">
+                <button onclick="getCachedRedditData()" class="cache-btn">📊 Get Latest Cached Data</button>
+                <button onclick="forceRedditUpdate()" class="force-update-btn">🔄 Force Update Now</button>
+            </div>
+        </div>
+    `;
+}
+
+function getCachedRedditData() {
+    const btn = document.querySelector('.cache-btn');
+    if (btn) {
+        btn.textContent = '⏳ Loading Cached Data...';
+        btn.disabled = true;
+    }
+
+    fetch('/api/reddit-comprehensive-cached')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayCachedRedditAnalysis(data);
+            } else {
+                alert('Failed to load cached data: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching cached data:', error);
+            alert('Error fetching cached data: ' + error.message);
+        })
+        .finally(() => {
+            if (btn) {
+                btn.textContent = '📊 Get Latest Cached Data';
+                btn.disabled = false;
+            }
+        });
+}
+
+function forceRedditUpdate() {
+    const btn = document.querySelector('.force-update-btn');
+    if (btn) {
+        btn.textContent = '⏳ Updating... (may take 2-3 minutes)';
+        btn.disabled = true;
+    }
+
+    fetch('/api/reddit-force-update')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Update completed! Analyzed ${data.total_posts} posts and ${data.total_comments} comments.`);
+                // Refresh status
+                checkRedditBackgroundStatus();
+            } else {
+                alert('Update failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error forcing update:', error);
+            alert('Error forcing update: ' + error.message);
+        })
+        .finally(() => {
+            if (btn) {
+                btn.textContent = '🔄 Force Update Now';
+                btn.disabled = false;
+            }
+        });
+}
+
+function displayCachedRedditAnalysis(data) {
+    const container = document.getElementById('cached-reddit-container') || 
+                     document.createElement('div');
+    container.id = 'cached-reddit-container';
+    container.className = 'cached-reddit-analysis';
+    
+    if (!document.getElementById('cached-reddit-container')) {
+        document.querySelector('.reddit-summary').appendChild(container);
+    }
+    
+    const cachedData = data.cached_data.comprehensive_analysis;
+    
+    container.innerHTML = `
+        <h3>📈 Latest Cached Reddit Analysis</h3>
+        <div class="analysis-summary">
+            <p><strong>Data Freshness:</strong> ${new Date(data.data_freshness).toLocaleString()}</p>
+            <p><strong>Total Posts:</strong> ${data.total_posts.toLocaleString()}</p>
+            <p><strong>Total Comments:</strong> ${data.total_comments.toLocaleString()}</p>
+            <p><strong>Auto-Updated:</strong> Every hour in background</p>
+        </div>
+        
+        <div class="team-picks-comprehensive">
+            <h4>🏈 Team Sentiment Analysis</h4>
+            ${Object.entries(cachedData.team_picks || {}).map(([team, data]) => `
+                <div class="team-sentiment-card">
+                    <h5>${team}</h5>
+                    <p><strong>Mentions:</strong> ${data.mentions}</p>
+                    <p><strong>Total Score:</strong> ${data.total_score}</p>
+                    <p><strong>Popularity:</strong> ${data.popularity.toFixed(1)}</p>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="sentiment-overview">
+            <h4>📊 Overall Sentiment</h4>
+            <p><strong>Sentiment Score:</strong> ${(cachedData.sentiment_score * 100).toFixed(1)}%</p>
+            <p><strong>Confidence Level:</strong> ${cachedData.confidence_level}</p>
+            <p><strong>Posts Analyzed:</strong> ${cachedData.posts_analyzed || 0}</p>
+        </div>
+    `;
+}
+
+// Auto-check status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Check background status every 30 seconds
+    checkRedditBackgroundStatus();
+    setInterval(checkRedditBackgroundStatus, 30000);
+});
