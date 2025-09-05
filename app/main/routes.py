@@ -515,3 +515,74 @@ def reddit_background_status():
             'success': False,
             'error': str(e)
         })
+
+@bp.route('/api/clean-duplicate-predictions')
+def clean_duplicate_predictions():
+    """Clean up duplicate predictions in the database"""
+    try:
+        from collections import defaultdict
+        
+        # Get all predictions grouped by game_id
+        all_predictions = Prediction.query.all()
+        game_predictions = defaultdict(list)
+        
+        for prediction in all_predictions:
+            game_predictions[prediction.game_id].append(prediction)
+        
+        duplicates_removed = 0
+        games_with_duplicates = []
+        
+        # Keep only the latest prediction for each game
+        for game_id, predictions in game_predictions.items():
+            if len(predictions) > 1:
+                games_with_duplicates.append(game_id)
+                # Sort by id (latest created) and keep the last one
+                predictions.sort(key=lambda x: x.id)
+                predictions_to_remove = predictions[:-1]  # Remove all except the last one
+                
+                for pred in predictions_to_remove:
+                    db.session.delete(pred)
+                    duplicates_removed += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'duplicates_removed': duplicates_removed,
+            'games_affected': len(games_with_duplicates),
+            'games_with_duplicates': games_with_duplicates,
+            'total_predictions_remaining': Prediction.query.count(),
+            'message': f'Removed {duplicates_removed} duplicate predictions from {len(games_with_duplicates)} games'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+@bp.route('/api/prediction-stats')
+def prediction_stats():
+    """Get statistics about predictions in the database"""
+    try:
+        from collections import Counter
+        
+        all_predictions = Prediction.query.all()
+        games_with_predictions = Counter(pred.game_id for pred in all_predictions)
+        
+        duplicates = {game_id: count for game_id, count in games_with_predictions.items() if count > 1}
+        
+        return jsonify({
+            'success': True,
+            'total_predictions': len(all_predictions),
+            'unique_games': len(games_with_predictions),
+            'games_with_duplicates': len(duplicates),
+            'duplicate_details': duplicates,
+            'predictions_per_game': dict(games_with_predictions)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })

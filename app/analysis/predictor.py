@@ -47,6 +47,12 @@ class NFLPredictor:
 
     def predict_game(self, game):
         try:
+            # Check if prediction already exists for this game
+            existing_prediction = Prediction.query.filter_by(game_id=game.id).first()
+            if existing_prediction:
+                print(f"Prediction already exists for game {game.id}, returning existing prediction")
+                return existing_prediction
+            
             # Check if we have enough historical data to train the model
             historical_games = Game.query.filter_by(status='completed').count()
             
@@ -176,6 +182,12 @@ class NFLPredictor:
     
     def _simple_prediction(self, game):
         """Simple prediction logic when insufficient historical data"""
+        # Check if prediction already exists for this game
+        existing_prediction = Prediction.query.filter_by(game_id=game.id).first()
+        if existing_prediction:
+            print(f"Simple prediction already exists for game {game.id}, returning existing prediction")
+            return existing_prediction
+        
         # Use basic heuristics: home field advantage, team name strength
         home_advantage = 0.55  # 55% chance for home team
         confidence = 0.6  # Moderate confidence

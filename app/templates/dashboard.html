@@ -43,8 +43,10 @@
                     {% endif %}
                 </div>
                 
+                {% set prediction_found = false %}
                 {% for prediction in predictions %}
-                    {% if prediction.game_id == game.id %}
+                    {% if prediction.game_id == game.id and not prediction_found %}
+                    {% set prediction_found = true %}
                     <div class="prediction">
                         <p><strong>AI Pick: {{ prediction.predicted_winner }}</strong></p>
                         <p>Confidence: {{ "%.1f"|format(prediction.confidence * 100) }}%</p>
