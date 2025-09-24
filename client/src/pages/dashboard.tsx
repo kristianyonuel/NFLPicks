@@ -17,12 +17,11 @@ import type { GameWithDetails, WeekSummary } from "@shared/schema";
 // Calculate current NFL week based on current date
 function getCurrentNFLWeek(): { week: number; season: number } {
   const now = new Date();
-  const year = now.getFullYear();
   
-  // NFL season typically starts first Thursday after Labor Day (first Monday in September)
-  // For 2024 season, Week 1 started September 5, 2024
-  const season2024Start = new Date('2024-09-05');
-  const season2025Start = new Date('2025-09-04'); // Estimated
+  // NFL season dates - Week 1 typically starts on a Thursday
+  // NFL weeks run Tuesday to Monday (games Thu/Sun/Mon, new week starts Tuesday)
+  const season2024Start = new Date('2024-09-05'); // Week 1 started September 5, 2024 (Thursday)
+  const season2025Start = new Date('2025-09-04'); // Estimated Week 1 start for 2025
   
   let seasonStart: Date;
   let season: number;
@@ -39,12 +38,25 @@ function getCurrentNFLWeek(): { week: number; season: number } {
     season = 2023;
   }
   
-  // Calculate weeks since season start
-  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-  const weeksSinceStart = Math.floor((now.getTime() - seasonStart.getTime()) / msPerWeek);
+  // Calculate days since season start
+  const daysSinceStart = Math.floor((now.getTime() - seasonStart.getTime()) / (24 * 60 * 60 * 1000));
+  
+  // NFL weeks: Thursday is day 0, Friday is day 1, ... Monday is day 4, Tuesday starts next week
+  // Adjust for the fact that weeks start on Tuesday for scheduling purposes
+  const weeksSinceStart = Math.floor(daysSinceStart / 7);
+  let week = weeksSinceStart + 1;
+  
+  // Fine-tune based on day of week
+  const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, 2=Tuesday, etc.
+  
+  // If it's Tuesday (2) or Wednesday (3) and we're more than 3 days into a week period,
+  // we should be in the next week
+  if ((dayOfWeek === 2 || dayOfWeek === 3) && (daysSinceStart % 7) >= 4) {
+    week += 1;
+  }
   
   // NFL has 18 weeks in regular season, then playoffs
-  const week = Math.min(Math.max(weeksSinceStart + 1, 1), 18);
+  week = Math.min(Math.max(week, 1), 18);
   
   return { week, season };
 }
