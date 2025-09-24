@@ -63,6 +63,7 @@ function getCurrentNFLWeek(): { week: number; season: number } {
 
 export default function Dashboard() {
   const currentNFL = getCurrentNFLWeek();
+  console.log('Current NFL Week calculated:', currentNFL); // Debug log
   const [selectedWeek, setSelectedWeek] = useState(currentNFL.week);
   const [selectedSeason] = useState(currentNFL.season);
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,10 +76,15 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   // Fetch all games data without backend filters (we'll filter on frontend)
-  const { data: allGames = [], isLoading: gamesLoading, refetch: refetchGames } = useQuery<GameWithDetails[]>({
+  const { data: allGames = [], isLoading: gamesLoading, refetch: refetchGames, error } = useQuery<GameWithDetails[]>({
     queryKey: ["/api/games", selectedWeek, selectedSeason],
     enabled: true,
+    staleTime: 0, // Don't use cached data
+    refetchOnMount: true, // Always refetch when component mounts
   });
+  
+  // Debug logging
+  console.log('Dashboard state:', { selectedWeek, selectedSeason, allGames: allGames?.length, gamesLoading, error });
 
   // Fetch week summary
   const { data: summary, isLoading: summaryLoading } = useQuery<WeekSummary>({
