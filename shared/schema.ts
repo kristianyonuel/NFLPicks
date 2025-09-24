@@ -48,6 +48,7 @@ export const aiPredictions = pgTable("ai_predictions", {
   gameId: varchar("game_id").notNull().references(() => games.id),
   predictedWinner: varchar("predicted_winner").notNull(),
   confidence: decimal("confidence", { precision: 5, scale: 2 }).notNull(),
+  winProbability: decimal("win_probability", { precision: 5, scale: 3 }),
   analysis: text("analysis").notNull(),
   recommendedBet: text("recommended_bet"),
   keyFactors: jsonb("key_factors"),
@@ -108,6 +109,69 @@ export type GameWithDetails = Game & {
   expertAdvice: ExpertAdvice[];
 };
 
+// Enhanced data tables
+export const redditSentiment = pgTable("reddit_sentiment", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  gameId: varchar("game_id").references(() => games.id),
+  sentiment: decimal("sentiment", { precision: 4, scale: 3 }).notNull(), // -1 to 1
+  confidence: decimal("confidence", { precision: 4, scale: 3 }).notNull(),
+  keyPhrases: jsonb("key_phrases").$type<string[]>(),
+  trendingConcerns: jsonb("trending_concerns").$type<string[]>(),
+  positiveNarratives: jsonb("positive_narratives").$type<string[]>(),
+  postCount: integer("post_count").notNull().default(0),
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+});
+
+export const weatherData = pgTable("weather_data", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id),
+  temperature: integer("temperature"),
+  windSpeed: integer("wind_speed"),
+  precipitation: integer("precipitation"),
+  conditions: text("conditions"),
+  domeGame: boolean("dome_game").notNull().default(false),
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+});
+
+export const injuryReports = pgTable("injury_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  teamId: varchar("team_id").notNull().references(() => teams.id),
+  gameId: varchar("game_id").references(() => games.id),
+  keyPlayersOut: jsonb("key_players_out").$type<string[]>(),
+  keyPlayersQuestionable: jsonb("key_players_questionable").$type<string[]>(),
+  impactRating: integer("impact_rating").notNull().default(1), // 1-5 scale
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+});
+
+export const bettingIntelligence = pgTable("betting_intelligence", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id),
+  sharpMoney: text("sharp_money"), // 'home', 'away', 'neutral'
+  publicBetting: integer("public_betting"), // percentage on favorite
+  lineMovement: text("line_movement"),
+  steamMoves: boolean("steam_moves").notNull().default(false),
+  totalAction: text("total_action"), // 'heavy', 'moderate', 'light'
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+});
+
+export const gameIntelligence = pgTable("game_intelligence", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameId: varchar("game_id").notNull().references(() => games.id),
+  sentimentImpact: text("sentiment_impact"),
+  weatherImpact: text("weather_impact"),
+  coachingEdge: text("coaching_edge"),
+  valuePlay: text("value_play"),
+  riskFactors: jsonb("risk_factors").$type<string[]>(),
+  confidenceFactors: jsonb("confidence_factors").$type<{
+    dataQuality: number;
+    modelConsensus: number;
+    marketAlignment: number;
+    historicalAccuracy: number;
+  }>(),
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+});
+
 export type WeekSummary = {
   week: number;
   season: number;
@@ -118,3 +182,16 @@ export type WeekSummary = {
   avgConfidence: number;
   avgLineMovement: number;
 };
+
+// Enhanced type exports
+export type RedditSentiment = typeof redditSentiment.$inferSelect;
+export type WeatherData = typeof weatherData.$inferSelect;
+export type InjuryReport = typeof injuryReports.$inferSelect;
+export type BettingIntelligence = typeof bettingIntelligence.$inferSelect;
+export type GameIntelligence = typeof gameIntelligence.$inferSelect;
+
+export type InsertRedditSentiment = typeof redditSentiment.$inferInsert;
+export type InsertWeatherData = typeof weatherData.$inferInsert;
+export type InsertInjuryReport = typeof injuryReports.$inferInsert;
+export type InsertBettingIntelligence = typeof bettingIntelligence.$inferInsert;
+export type InsertGameIntelligence = typeof gameIntelligence.$inferInsert;

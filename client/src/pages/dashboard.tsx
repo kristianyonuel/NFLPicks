@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { IntelligenceTab } from "@/components/intelligence-tab";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Search, RotateCcw } from "lucide-react";
+import { Search, RotateCcw, TrendingUp, Brain } from "lucide-react";
 import type { GameWithDetails, WeekSummary } from "@shared/schema";
 
 // Calculate current NFL week based on current date
@@ -245,39 +247,59 @@ export default function Dashboard() {
           {/* Summary Cards */}
           <SummaryCards summary={summary} data-testid="summary-cards" />
 
-          {/* Featured Games */}
-          {featuredGames.length > 0 && (
-            <div className="grid grid-cols-2 gap-6 mb-8">
-              {featuredGames.map((game, index) => (
-                <GameCard 
-                  key={game.id} 
-                  game={game} 
-                  featured={true}
-                  data-testid={`game-card-featured-${index}`}
-                />
-              ))}
-            </div>
-          )}
+          {/* Tab Navigation */}
+          <Tabs defaultValue="overview" className="mt-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="intelligence" className="flex items-center gap-2">
+                <Brain className="h-4 w-4" />
+                Intelligence
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-6">
+              {/* Featured Games */}
+              {featuredGames.length > 0 && (
+                <div className="grid grid-cols-2 gap-6">
+                  {featuredGames.map((game, index) => (
+                    <GameCard 
+                      key={game.id} 
+                      game={game} 
+                      featured={true}
+                      data-testid={`game-card-featured-${index}`}
+                    />
+                  ))}
+                </div>
+              )}
 
-          {/* Games Table */}
-          <GamesTable games={filteredGames} data-testid="games-table" />
+              {/* Games Table */}
+              <GamesTable games={filteredGames} data-testid="games-table" />
 
-          {/* Expert Analysis */}
-          <div className="mt-8">
-            <ExpertAnalysis games={filteredGames} data-testid="expert-analysis" />
-          </div>
+              {/* Expert Analysis */}
+              <ExpertAnalysis games={filteredGames} data-testid="expert-analysis" />
 
-          {/* Empty State */}
-          {filteredGames.length === 0 && !gamesLoading && (
-            <div className="text-center py-12" data-testid="empty-state">
-              <h3 className="text-lg font-semibold text-muted-foreground mb-2">
-                No games found
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Try adjusting your filters or search query
-              </p>
-            </div>
-          )}
+              {/* Empty State */}
+              {filteredGames.length === 0 && !gamesLoading && (
+                <div className="text-center py-12" data-testid="empty-state">
+                  <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                    No games found
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Try adjusting your filters or search query
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Intelligence Tab */}
+            <TabsContent value="intelligence">
+              <IntelligenceTab games={filteredGames} />
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </div>

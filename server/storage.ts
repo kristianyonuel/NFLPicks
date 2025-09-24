@@ -5,7 +5,12 @@ import {
   type AiPrediction, type InsertAiPrediction,
   type ExpertAdvice, type InsertExpertAdvice,
   type TeamStats, type InsertTeamStats,
-  type GameWithDetails, type WeekSummary
+  type GameWithDetails, type WeekSummary,
+  type RedditSentiment, type InsertRedditSentiment,
+  type WeatherData, type InsertWeatherData,
+  type InjuryReport, type InsertInjuryReport,
+  type BettingIntelligence, type InsertBettingIntelligence,
+  type GameIntelligence, type InsertGameIntelligence
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -38,6 +43,22 @@ export interface IStorage {
   createAiPrediction(prediction: InsertAiPrediction): Promise<AiPrediction>;
   updateAiPrediction(gameId: string, prediction: Partial<AiPrediction>): Promise<AiPrediction | undefined>;
   
+  // Enhanced Data
+  getRedditSentiment(teamId: string, gameId?: string): Promise<RedditSentiment | undefined>;
+  createRedditSentiment(sentiment: InsertRedditSentiment): Promise<RedditSentiment>;
+  
+  getWeatherData(gameId: string): Promise<WeatherData | undefined>;
+  createWeatherData(weather: InsertWeatherData): Promise<WeatherData>;
+  
+  getInjuryReport(teamId: string, gameId?: string): Promise<InjuryReport | undefined>;
+  createInjuryReport(injury: InsertInjuryReport): Promise<InjuryReport>;
+  
+  getBettingIntelligence(gameId: string): Promise<BettingIntelligence | undefined>;
+  createBettingIntelligence(intel: InsertBettingIntelligence): Promise<BettingIntelligence>;
+  
+  getGameIntelligence(gameId: string): Promise<GameIntelligence | undefined>;
+  createGameIntelligence(intel: InsertGameIntelligence): Promise<GameIntelligence>;
+  
   // Expert Advice
   getExpertAdvice(gameId: string): Promise<ExpertAdvice[]>;
   createExpertAdvice(advice: InsertExpertAdvice): Promise<ExpertAdvice>;
@@ -58,6 +79,11 @@ export class MemStorage implements IStorage {
   private aiPredictions: Map<string, AiPrediction>;
   private expertAdvice: Map<string, ExpertAdvice[]>;
   private teamStats: Map<string, TeamStats>;
+  private redditSentiments: Map<string, RedditSentiment>;
+  private weatherData: Map<string, WeatherData>;
+  private injuryReports: Map<string, InjuryReport>;
+  private bettingIntelligence: Map<string, BettingIntelligence>;
+  private gameIntelligence: Map<string, GameIntelligence>;
 
   constructor() {
     this.teams = new Map();
@@ -66,6 +92,11 @@ export class MemStorage implements IStorage {
     this.aiPredictions = new Map();
     this.expertAdvice = new Map();
     this.teamStats = new Map();
+    this.redditSentiments = new Map();
+    this.weatherData = new Map();
+    this.injuryReports = new Map();
+    this.bettingIntelligence = new Map();
+    this.gameIntelligence = new Map();
 
     // Initialize with current NFL teams and sample data
     this.initializeTeams();
@@ -411,6 +442,7 @@ export class MemStorage implements IStorage {
     const newPrediction: AiPrediction = { 
       ...prediction,
       id,
+      winProbability: prediction.winProbability ?? null,
       recommendedBet: prediction.recommendedBet ?? null,
       keyFactors: prediction.keyFactors ?? null,
       createdAt: new Date()
@@ -504,6 +536,111 @@ export class MemStorage implements IStorage {
       avgConfidence,
       avgLineMovement: -110, // Mock value for line movement
     };
+  }
+
+  // Enhanced Data Methods
+  async getRedditSentiment(teamId: string, gameId?: string): Promise<RedditSentiment | undefined> {
+    const key = gameId ? `${teamId}-${gameId}` : teamId;
+    return this.redditSentiments.get(key);
+  }
+
+  async createRedditSentiment(sentiment: InsertRedditSentiment): Promise<RedditSentiment> {
+    const id = randomUUID();
+    const key = sentiment.gameId ? `${sentiment.teamId}-${sentiment.gameId}` : sentiment.teamId;
+    const newSentiment: RedditSentiment = {
+      ...sentiment,
+      id,
+      gameId: sentiment.gameId ?? null,
+      keyPhrases: sentiment.keyPhrases ?? null,
+      trendingConcerns: sentiment.trendingConcerns ?? null,
+      positiveNarratives: sentiment.positiveNarratives ?? null,
+      postCount: sentiment.postCount ?? 0,
+      lastUpdated: new Date()
+    };
+    this.redditSentiments.set(key, newSentiment);
+    return newSentiment;
+  }
+
+  async getWeatherData(gameId: string): Promise<WeatherData | undefined> {
+    return this.weatherData.get(gameId);
+  }
+
+  async createWeatherData(weather: InsertWeatherData): Promise<WeatherData> {
+    const id = randomUUID();
+    const newWeather: WeatherData = {
+      ...weather,
+      id,
+      temperature: weather.temperature ?? null,
+      windSpeed: weather.windSpeed ?? null,
+      precipitation: weather.precipitation ?? null,
+      conditions: weather.conditions ?? null,
+      domeGame: weather.domeGame ?? false,
+      lastUpdated: new Date()
+    };
+    this.weatherData.set(weather.gameId, newWeather);
+    return newWeather;
+  }
+
+  async getInjuryReport(teamId: string, gameId?: string): Promise<InjuryReport | undefined> {
+    const key = gameId ? `${teamId}-${gameId}` : teamId;
+    return this.injuryReports.get(key);
+  }
+
+  async createInjuryReport(injury: InsertInjuryReport): Promise<InjuryReport> {
+    const id = randomUUID();
+    const key = injury.gameId ? `${injury.teamId}-${injury.gameId}` : injury.teamId;
+    const newInjury: InjuryReport = {
+      ...injury,
+      id,
+      gameId: injury.gameId ?? null,
+      keyPlayersOut: injury.keyPlayersOut ?? null,
+      keyPlayersQuestionable: injury.keyPlayersQuestionable ?? null,
+      impactRating: injury.impactRating ?? 1,
+      lastUpdated: new Date()
+    };
+    this.injuryReports.set(key, newInjury);
+    return newInjury;
+  }
+
+  async getBettingIntelligence(gameId: string): Promise<BettingIntelligence | undefined> {
+    return this.bettingIntelligence.get(gameId);
+  }
+
+  async createBettingIntelligence(intel: InsertBettingIntelligence): Promise<BettingIntelligence> {
+    const id = randomUUID();
+    const newIntel: BettingIntelligence = {
+      ...intel,
+      id,
+      sharpMoney: intel.sharpMoney ?? null,
+      publicBetting: intel.publicBetting ?? null,
+      lineMovement: intel.lineMovement ?? null,
+      steamMoves: intel.steamMoves ?? false,
+      totalAction: intel.totalAction ?? null,
+      lastUpdated: new Date()
+    };
+    this.bettingIntelligence.set(intel.gameId, newIntel);
+    return newIntel;
+  }
+
+  async getGameIntelligence(gameId: string): Promise<GameIntelligence | undefined> {
+    return this.gameIntelligence.get(gameId);
+  }
+
+  async createGameIntelligence(intel: InsertGameIntelligence): Promise<GameIntelligence> {
+    const id = randomUUID();
+    const newIntel: GameIntelligence = {
+      ...intel,
+      id,
+      sentimentImpact: intel.sentimentImpact ?? null,
+      weatherImpact: intel.weatherImpact ?? null,
+      coachingEdge: intel.coachingEdge ?? null,
+      valuePlay: intel.valuePlay ?? null,
+      riskFactors: intel.riskFactors ?? null,
+      confidenceFactors: intel.confidenceFactors ?? null,
+      lastUpdated: new Date()
+    };
+    this.gameIntelligence.set(intel.gameId, newIntel);
+    return newIntel;
   }
 }
 

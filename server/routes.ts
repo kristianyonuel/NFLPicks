@@ -374,6 +374,237 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced Analysis Routes
+  
+  // Get Reddit sentiment for a team
+  app.get("/api/sentiment/:teamId", async (req, res) => {
+    try {
+      const { teamId } = req.params;
+      const gameId = req.query.gameId as string;
+      
+      const sentiment = await storage.getRedditSentiment(teamId, gameId);
+      if (!sentiment) {
+        return res.status(404).json({ error: "No sentiment data found" });
+      }
+      
+      res.json(sentiment);
+    } catch (error) {
+      console.error("Error fetching sentiment:", error);
+      res.status(500).json({ error: "Failed to fetch sentiment data" });
+    }
+  });
+
+  // Get comprehensive game intelligence
+  app.get("/api/intelligence/:gameId", async (req, res) => {
+    try {
+      const { gameId } = req.params;
+      
+      const [game, intelligence, weather, bettingIntel] = await Promise.all([
+        storage.getGame(gameId),
+        storage.getGameIntelligence(gameId),
+        storage.getWeatherData(gameId),
+        storage.getBettingIntelligence(gameId)
+      ]);
+
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      const [homeTeam, awayTeam] = await Promise.all([
+        storage.getTeam(game.homeTeamId),
+        storage.getTeam(game.awayTeamId)
+      ]);
+
+      const [homeSentiment, awaySentiment, homeInjury, awayInjury] = await Promise.all([
+        storage.getRedditSentiment(game.homeTeamId, gameId),
+        storage.getRedditSentiment(game.awayTeamId, gameId),
+        storage.getInjuryReport(game.homeTeamId, gameId),
+        storage.getInjuryReport(game.awayTeamId, gameId)
+      ]);
+
+      const enhancedIntelligence = {
+        game,
+        teams: { home: homeTeam, away: awayTeam },
+        intelligence,
+        weather,
+        betting: bettingIntel,
+        sentiment: { home: homeSentiment, away: awaySentiment },
+        injuries: { home: homeInjury, away: awayInjury }
+      };
+
+      res.json(enhancedIntelligence);
+    } catch (error) {
+      console.error("Error fetching game intelligence:", error);
+      res.status(500).json({ error: "Failed to fetch game intelligence" });
+    }
+  });
+
+  // Get weather data for a game
+  app.get("/api/weather/:gameId", async (req, res) => {
+    try {
+      const { gameId } = req.params;
+      
+      const weather = await storage.getWeatherData(gameId);
+      if (!weather) {
+        return res.status(404).json({ error: "No weather data found" });
+      }
+      
+      res.json(weather);
+    } catch (error) {
+      console.error("Error fetching weather:", error);
+      res.status(500).json({ error: "Failed to fetch weather data" });
+    }
+  });
+
+  // Generate enhanced analysis for a specific game
+  app.post("/api/enhance/:gameId", async (req, res) => {
+    try {
+      const { gameId } = req.params;
+      
+      // Import the enhanced prediction engine
+      const { enhancedPredictionEngine } = await import("./services/enhanced-prediction-engine");
+
+      const game = await storage.getGame(gameId);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      const [homeTeam, awayTeam] = await Promise.all([
+        storage.getTeam(game.homeTeamId),
+        storage.getTeam(game.awayTeamId)
+      ]);
+
+      if (!homeTeam || !awayTeam) {
+        return res.status(404).json({ error: "Teams not found" });
+      }
+
+      // Generate enhanced analysis
+      const enhancedAnalysis = await enhancedPredictionEngine.generateEnhancedPrediction(
+        game, 
+        homeTeam, 
+        awayTeam
+      );
+
+      // Store the results in our database
+      await storage.createGameIntelligence({
+        gameId,
+        sentimentImpact: enhancedAnalysis.sentimentImpact,
+        weatherImpact: enhancedAnalysis.weatherImpact,
+        coachingEdge: enhancedAnalysis.coachingEdge,
+        valuePlay: enhancedAnalysis.valuePlay,
+        riskFactors: enhancedAnalysis.riskFactors,
+        confidenceFactors: enhancedAnalysis.confidenceFactors
+      });
+
+      // Update AI prediction with enhanced data
+      await storage.updateAiPrediction(gameId, {
+        predictedWinner: enhancedAnalysis.predictedWinner,
+        confidence: enhancedAnalysis.confidence.toString(),
+        winProbability: enhancedAnalysis.winProbability.toString(),
+        analysis: enhancedAnalysis.analysis,
+        recommendedBet: enhancedAnalysis.recommendedBet,
+        keyFactors: enhancedAnalysis.keyFactors
+      });
+
+      res.json({
+        success: true,
+        analysis: enhancedAnalysis,
+        message: "Enhanced analysis completed and stored"
+      });
+
+    } catch (error) {
+      console.error("Error generating enhanced analysis:", error);
+      res.status(500).json({ 
+        error: "Failed to generate enhanced analysis",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Batch process all games for current week with enhanced analysis
+  app.post("/api/enhance/batch", async (req, res) => {
+    try {
+      const currentWeek = getCurrentNFLWeek();
+      const games = await storage.getGamesByWeek(currentWeek.week, currentWeek.season);
+      
+      const { enhancedPredictionEngine } = await import("./services/enhanced-prediction-engine");
+      
+      const results = [];
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const game of games) {
+        try {
+          const [homeTeam, awayTeam] = await Promise.all([
+            storage.getTeam(game.homeTeamId),
+            storage.getTeam(game.awayTeamId)
+          ]);
+
+          if (!homeTeam || !awayTeam) {
+            throw new Error(`Teams not found for game ${game.id}`);
+          }
+
+          const enhancedAnalysis = await enhancedPredictionEngine.generateEnhancedPrediction(
+            game, 
+            homeTeam, 
+            awayTeam
+          );
+
+          await storage.createGameIntelligence({
+            gameId: game.id,
+            sentimentImpact: enhancedAnalysis.sentimentImpact,
+            weatherImpact: enhancedAnalysis.weatherImpact,
+            coachingEdge: enhancedAnalysis.coachingEdge,
+            valuePlay: enhancedAnalysis.valuePlay,
+            riskFactors: enhancedAnalysis.riskFactors,
+            confidenceFactors: enhancedAnalysis.confidenceFactors
+          });
+
+          await storage.updateAiPrediction(game.id, {
+            predictedWinner: enhancedAnalysis.predictedWinner,
+            confidence: enhancedAnalysis.confidence.toString(),
+            winProbability: enhancedAnalysis.winProbability.toString(),
+            analysis: enhancedAnalysis.analysis,
+            recommendedBet: enhancedAnalysis.recommendedBet,
+            keyFactors: enhancedAnalysis.keyFactors
+          });
+
+          results.push({
+            gameId: game.id,
+            matchup: `${awayTeam.name} @ ${homeTeam.name}`,
+            success: true,
+            confidence: enhancedAnalysis.confidence
+          });
+          
+          successCount++;
+        } catch (gameError) {
+          console.error(`Error processing game ${game.id}:`, gameError);
+          results.push({
+            gameId: game.id,
+            success: false,
+            error: gameError instanceof Error ? gameError.message : String(gameError)
+          });
+          errorCount++;
+        }
+      }
+
+      res.json({
+        success: errorCount === 0,
+        processed: games.length,
+        successful: successCount,
+        failed: errorCount,
+        results
+      });
+
+    } catch (error) {
+      console.error("Error in batch enhancement:", error);
+      res.status(500).json({ 
+        error: "Failed to process batch enhancement",
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Schedule automatic data updates
   // Update every hour during game days (Thursday, Sunday, Monday)
   cron.schedule("0 * * * 4,0,1", async () => {
