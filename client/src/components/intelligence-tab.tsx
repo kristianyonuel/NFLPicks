@@ -221,6 +221,23 @@ interface IntelligenceDetailsProps {
 function IntelligenceDetails({ intelligence }: IntelligenceDetailsProps) {
   const { game, teams, intelligence: gameIntel, weather, betting, sentiment, injuries } = intelligence;
 
+  // Add safety checks for teams data
+  if (!teams || !teams.home || !teams.away) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-semibold mb-2">Missing Team Data</h3>
+            <p className="text-muted-foreground">
+              Team information is not available for this game.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Game Header */}
@@ -249,7 +266,7 @@ function IntelligenceDetails({ intelligence }: IntelligenceDetailsProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-6">
-              {sentiment.home && (
+              {sentiment?.home && (
                 <div className="space-y-3">
                   <h4 className="font-semibold text-sm">{teams.home.name}</h4>
                   <div className="space-y-2">
@@ -271,7 +288,7 @@ function IntelligenceDetails({ intelligence }: IntelligenceDetailsProps) {
                   </div>
                 </div>
               )}
-              {sentiment.away && (
+              {sentiment?.away && (
                 <div className="space-y-3">
                   <h4 className="font-semibold text-sm">{teams.away.name}</h4>
                   <div className="space-y-2">
@@ -437,7 +454,7 @@ function IntelligenceDetails({ intelligence }: IntelligenceDetailsProps) {
       )}
 
       {/* Injury Reports */}
-      {(injuries.home || injuries.away) && (
+      {(injuries?.home || injuries?.away) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -447,11 +464,11 @@ function IntelligenceDetails({ intelligence }: IntelligenceDetailsProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-6">
-              {injuries.home && (
+              {injuries?.home && (
                 <div>
                   <h4 className="font-semibold text-sm mb-3">{teams.home.name}</h4>
                   <div className="space-y-2">
-                    {injuries.home.keyInjuries.map((injury: any, index: number) => (
+                    {injuries.home.keyInjuries?.map((injury: any, index: number) => (
                       <div key={index} className="flex justify-between items-center">
                         <span className="text-sm">{injury.player}</span>
                         <Badge 
@@ -466,11 +483,11 @@ function IntelligenceDetails({ intelligence }: IntelligenceDetailsProps) {
                   </div>
                 </div>
               )}
-              {injuries.away && (
+              {injuries?.away && (
                 <div>
                   <h4 className="font-semibold text-sm mb-3">{teams.away.name}</h4>
                   <div className="space-y-2">
-                    {injuries.away.keyInjuries.map((injury: any, index: number) => (
+                    {injuries.away.keyInjuries?.map((injury: any, index: number) => (
                       <div key={index} className="flex justify-between items-center">
                         <span className="text-sm">{injury.player}</span>
                         <Badge 
