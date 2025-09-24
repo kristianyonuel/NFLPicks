@@ -104,8 +104,64 @@ export class MemStorage implements IStorage {
       await this.createTeamStats(stats);
     }
 
-    // Sample games for Week 12, 2024
+    // Sample games for Week 4, 2024 (default dashboard week)
     const sampleGames = [
+      {
+        id: "game-week4-1",
+        week: 4,
+        season: 2024,
+        homeTeamId: "DAL",
+        awayTeamId: "WAS",
+        gameTime: new Date("2024-09-29T20:20:00Z"),
+        gameStatus: "scheduled",
+        isCompleted: false,
+        isPrimeTime: true,
+        isDivisional: true,
+        hasPlayoffImplications: true,
+      },
+      {
+        id: "game-week4-2",
+        week: 4,
+        season: 2024,
+        homeTeamId: "PIT",
+        awayTeamId: "CIN",
+        gameTime: new Date("2024-09-29T17:00:00Z"),
+        gameStatus: "scheduled",
+        isCompleted: false,
+        isPrimeTime: false,
+        isDivisional: true,
+        hasPlayoffImplications: true,
+      },
+      {
+        id: "game-week4-3",
+        week: 4,
+        season: 2024,
+        homeTeamId: "KC",
+        awayTeamId: "LV",
+        gameTime: new Date("2024-09-29T13:00:00Z"),
+        gameStatus: "scheduled",
+        isCompleted: false,
+        isPrimeTime: false,
+        isDivisional: true,
+        hasPlayoffImplications: false,
+      },
+      {
+        id: "game-week4-4",
+        week: 4,
+        season: 2024,
+        homeTeamId: "GB",
+        awayTeamId: "MIA",
+        gameTime: new Date("2024-09-30T20:15:00Z"),
+        gameStatus: "scheduled",
+        isCompleted: false,
+        isPrimeTime: true,
+        isDivisional: false,
+        hasPlayoffImplications: false,
+      }
+    ];
+
+    // Sample games for Week 12, 2024
+    const week12Games = [
       {
         id: "game-1",
         week: 12,
@@ -120,7 +176,7 @@ export class MemStorage implements IStorage {
         hasPlayoffImplications: true,
       },
       {
-        id: "game-2", 
+        id: "game-2",
         week: 12,
         season: 2024,
         homeTeamId: "PIT",
@@ -158,14 +214,61 @@ export class MemStorage implements IStorage {
         isDivisional: false,
         hasPlayoffImplications: false,
       }
-    ];
-
+    ];    // Create games for both weeks
     for (const game of sampleGames) {
       await this.createGame(game);
     }
+    
+    for (const game of week12Games) {
+      await this.createGame(game);
+    }
 
-    // Sample betting odds
-    const sampleOdds = [
+    // Sample betting odds for Week 4
+    const week4Odds = [
+      {
+        gameId: "game-week4-1",
+        spreadHome: "-6.5",
+        spreadAway: "+6.5",
+        spreadOdds: -110,
+        totalPoints: "48.5",
+        totalOdds: -110,
+        homeMoneyline: -280,
+        awayMoneyline: +230,
+      },
+      {
+        gameId: "game-week4-2",
+        spreadHome: "-4.0",
+        spreadAway: "+4.0",
+        spreadOdds: -115,
+        totalPoints: "41.5",
+        totalOdds: -105,
+        homeMoneyline: -180,
+        awayMoneyline: +150,
+      },
+      {
+        gameId: "game-week4-3",
+        spreadHome: "-9.5",
+        spreadAway: "+9.5",
+        spreadOdds: -110,
+        totalPoints: "44.0",
+        totalOdds: -110,
+        homeMoneyline: -400,
+        awayMoneyline: +320,
+      },
+      {
+        gameId: "game-week4-4",
+        spreadHome: "-3.5",
+        spreadAway: "+3.5",
+        spreadOdds: -110,
+        totalPoints: "46.5",
+        totalOdds: -110,
+        homeMoneyline: -160,
+        awayMoneyline: +135,
+      }
+    ];
+
+    // Sample betting odds for Week 12
+    const week12Odds = [
       {
         gameId: "game-1",
         spreadHome: "-7.5",
@@ -179,7 +282,7 @@ export class MemStorage implements IStorage {
       {
         gameId: "game-2",
         spreadHome: "-3.0",
-        spreadAway: "+3.0", 
+        spreadAway: "+3.0",
         spreadOdds: -115,
         totalPoints: "42.5",
         totalOdds: -105,
@@ -208,12 +311,53 @@ export class MemStorage implements IStorage {
       }
     ];
 
-    for (const odds of sampleOdds) {
+    // Create betting odds for both weeks
+    for (const odds of week4Odds) {
+      await this.createBettingOdds(odds);
+    }
+    
+    for (const odds of week12Odds) {
       await this.createBettingOdds(odds);
     }
 
-    // Sample AI predictions
-    const samplePredictions = [
+    // Sample AI predictions for Week 4
+    const week4Predictions = [
+      {
+        gameId: "game-week4-1",
+        predictedWinner: "DAL",
+        confidence: "76.8",
+        analysis: "Cowboys at home in early season form. Washington still finding their rhythm on offense with new coordinator.",
+        recommendedBet: "Cowboys -6.5",
+        keyFactors: ["Early season home advantage", "Offensive coordination", "Divisional familiarity"]
+      },
+      {
+        gameId: "game-week4-2",
+        predictedWinner: "PIT",
+        confidence: "68.4",
+        analysis: "Steelers defense looks strong early in season. Bengals offense still working out chemistry issues.",
+        recommendedBet: "Under 41.5",
+        keyFactors: ["Defensive strength", "Early season offense", "Divisional matchup"]
+      },
+      {
+        gameId: "game-week4-3",
+        predictedWinner: "KC",
+        confidence: "88.2",
+        analysis: "Chiefs dominating early season as expected. Raiders in rebuild mode with new coaching staff.",
+        recommendedBet: "Chiefs -9.5",
+        keyFactors: ["Championship pedigree", "Coaching advantage", "Talent disparity"]
+      },
+      {
+        gameId: "game-week4-4",
+        predictedWinner: "GB",
+        confidence: "64.7",
+        analysis: "Packers at home in primetime. Miami adapting to new system but still dangerous on offense.",
+        recommendedBet: "Over 46.5",
+        keyFactors: ["Primetime advantage", "Offensive systems", "September weather"]
+      }
+    ];
+
+    // Sample AI predictions for Week 12
+    const week12Predictions = [
       {
         gameId: "game-1",
         predictedWinner: "DAL",
@@ -248,12 +392,45 @@ export class MemStorage implements IStorage {
       }
     ];
 
-    for (const prediction of samplePredictions) {
+    // Create predictions for both weeks
+    for (const prediction of week4Predictions) {
+      await this.createAiPrediction(prediction);
+    }
+    
+    for (const prediction of week12Predictions) {
       await this.createAiPrediction(prediction);
     }
 
-    // Sample expert advice
-    const sampleAdvice = [
+    // Sample expert advice for Week 4
+    const week4Advice = [
+      {
+        gameId: "game-week4-1",
+        source: "ESPN Bet",
+        content: "Cowboys looking strong early in the season. Home field advantage in September is always valuable in this division.",
+        recommendation: "Cowboys -6.5"
+      },
+      {
+        gameId: "game-week4-1",
+        source: "The Action Network",
+        content: "Washington has shown improvement but road divisional games are tough. Value on the home team early season.",
+        recommendation: "Cowboys -6.5"
+      },
+      {
+        gameId: "game-week4-2",
+        source: "Sharp Football",
+        content: "Pittsburgh defense looks elite early in season. Cincinnati offense still finding chemistry with new pieces.",
+        recommendation: "Under 41.5"
+      },
+      {
+        gameId: "game-week4-3",
+        source: "ESPN Bet",
+        content: "Chiefs are just better at every position. Raiders in full rebuild mode. Lay the points.",
+        recommendation: "Chiefs -9.5"
+      }
+    ];
+
+    // Sample expert advice for Week 12
+    const week12Advice = [
       {
         gameId: "game-1",
         source: "ESPN Bet",
@@ -261,7 +438,7 @@ export class MemStorage implements IStorage {
         recommendation: "Cowboys -7.5"
       },
       {
-        gameId: "game-1", 
+        gameId: "game-1",
         source: "The Action Network",
         content: "Sharp money coming in on Washington getting the points. Road dogs in divisional games have good value late in the season.",
         recommendation: "Commanders +7.5"
@@ -280,7 +457,12 @@ export class MemStorage implements IStorage {
       }
     ];
 
-    for (const advice of sampleAdvice) {
+    // Create expert advice for both weeks
+    for (const advice of week4Advice) {
+      await this.createExpertAdvice(advice);
+    }
+    
+    for (const advice of week12Advice) {
       await this.createExpertAdvice(advice);
     }
   }
@@ -299,7 +481,12 @@ export class MemStorage implements IStorage {
 
   async createTeam(team: InsertTeam): Promise<Team> {
     const id = team.id || randomUUID();
-    const newTeam: Team = { ...team, id };
+    const newTeam: Team = { 
+      ...team, 
+      id,
+      primaryColor: team.primaryColor ?? null,
+      secondaryColor: team.secondaryColor ?? null
+    };
     this.teams.set(id, newTeam);
     return newTeam;
   }
@@ -309,9 +496,93 @@ export class MemStorage implements IStorage {
   }
 
   async getGamesByWeek(week: number, season: number): Promise<Game[]> {
-    return Array.from(this.games.values()).filter(
+    const existingGames = Array.from(this.games.values()).filter(
       game => game.week === week && game.season === season
     );
+    
+    // If no games exist for this week, generate mock data
+    if (existingGames.length === 0 && week >= 1 && week <= 18 && season >= 2024) {
+      await this.generateMockWeekData(week, season);
+      return Array.from(this.games.values()).filter(
+        game => game.week === week && game.season === season
+      );
+    }
+    
+    return existingGames;
+  }
+
+  private async generateMockWeekData(week: number, season: number) {
+    const teams = Array.from(this.teams.values());
+    const availableTeams = [...teams];
+    
+    // Generate 4 mock games for the week
+    for (let i = 0; i < 4 && availableTeams.length >= 2; i++) {
+      // Randomly select two teams
+      const homeTeamIndex = Math.floor(Math.random() * availableTeams.length);
+      const homeTeam = availableTeams.splice(homeTeamIndex, 1)[0];
+      
+      const awayTeamIndex = Math.floor(Math.random() * availableTeams.length);
+      const awayTeam = availableTeams.splice(awayTeamIndex, 1)[0];
+      
+      // Calculate game date (typically Thursday, Sunday, or Monday)
+      const gameDate = new Date(season, 8, 1); // Start of September
+      gameDate.setDate(gameDate.getDate() + (week - 1) * 7 + (i === 0 ? 4 : i * 3)); // Spread across week
+      
+      const gameId = `mock-game-${week}-${season}-${i + 1}`;
+      
+      // Create mock game
+      const mockGame = {
+        id: gameId,
+        week,
+        season,
+        homeTeamId: homeTeam.id,
+        awayTeamId: awayTeam.id,
+        gameTime: gameDate,
+        gameStatus: "scheduled",
+        isCompleted: false,
+        isPrimeTime: i === 0 || i === 3, // First and last games are primetime
+        isDivisional: homeTeam.division === awayTeam.division,
+        hasPlayoffImplications: week > 10,
+      };
+      
+      await this.createGame(mockGame);
+      
+      // Generate mock betting odds
+      const spreadValue = (Math.random() * 12 - 6).toFixed(1); // -6 to +6
+      const totalPoints = (38 + Math.random() * 16).toFixed(1); // 38-54 points
+      
+      await this.createBettingOdds({
+        gameId,
+        spreadHome: spreadValue,
+        spreadAway: (-parseFloat(spreadValue)).toFixed(1),
+        spreadOdds: -110,
+        totalPoints,
+        totalOdds: -110,
+        homeMoneyline: parseFloat(spreadValue) > 0 ? -150 - Math.abs(parseFloat(spreadValue)) * 20 : 120 + Math.abs(parseFloat(spreadValue)) * 15,
+        awayMoneyline: parseFloat(spreadValue) > 0 ? 120 + Math.abs(parseFloat(spreadValue)) * 15 : -150 - Math.abs(parseFloat(spreadValue)) * 20,
+      });
+      
+      // Generate mock AI prediction
+      const confidence = (55 + Math.random() * 35).toFixed(1); // 55-90% confidence
+      const favoredTeam = parseFloat(spreadValue) > 0 ? awayTeam.id : homeTeam.id;
+      
+      await this.createAiPrediction({
+        gameId,
+        predictedWinner: favoredTeam,
+        confidence,
+        analysis: `AI analysis for ${homeTeam.name} vs ${awayTeam.name}. ${favoredTeam === homeTeam.id ? homeTeam.name : awayTeam.name} has the advantage in this matchup.`,
+        recommendedBet: `${favoredTeam === homeTeam.id ? homeTeam.abbreviation : awayTeam.abbreviation} ${Math.abs(parseFloat(spreadValue)).toFixed(1)}`,
+        keyFactors: ["Team strength", "Historical matchup", "Current form"],
+      });
+      
+      // Generate mock expert advice
+      await this.createExpertAdvice({
+        gameId,
+        source: "Mock Expert",
+        content: `Mock analysis for Week ${week} matchup between ${homeTeam.name} and ${awayTeam.name}.`,
+        recommendation: `${favoredTeam === homeTeam.id ? homeTeam.abbreviation : awayTeam.abbreviation} ${Math.abs(parseFloat(spreadValue)).toFixed(1)}`,
+      });
+    }
   }
 
   async getGamesWithDetails(week: number, season: number, filters?: {
