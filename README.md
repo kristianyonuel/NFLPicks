@@ -1,241 +1,162 @@
-# NFLPicks 🏈
+# NFL Analytics Dashboard
 
-A comprehensive Flask-based web application for NFL game predictions using machine learning, Reddit sentiment analysis, and multiple sports APIs.
+A modern NFL analytics dashboard built with TypeScript, React, and Express.js that provides real-time game data, AI-powered predictions, betting odds, and expert analysis.
 
-## 🚀 Quick Start
+## Features
 
-**Choose your preferred setup method:**
+- **Real-time NFL Data**: Live game scores, team statistics, and schedules from ESPN API
+- **AI-Powered Predictions**: GPT-4 powered game analysis and outcome predictions
+- **Betting Odds Integration**: Real-time odds from The Odds API with fallback mock data
+- **Expert Analysis**: Comprehensive tips from 6 professional sports analysis sources
+- **Interactive Dashboard**: Modern React UI with advanced filtering and search
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **Robust Fallback Systems**: Mock data generation when external APIs are unavailable
 
-### Option 1: Universal Launcher (Recommended)
+## Tech Stack
+
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Radix UI, Vite
+- **Backend**: Express.js, TypeScript
+- **Database**: SQLite with Drizzle ORM
+- **AI Integration**: OpenAI GPT-4 API
+- **External APIs**: ESPN API, The Odds API
+- **Build Tools**: Vite, PostCSS, ESLint
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
 ```bash
 git clone https://github.com/kristianyonuel/NFLPicks.git
 cd NFLPicks
-python launch.py
 ```
 
-### Option 2: Cross-Platform Python Script
+2. Install dependencies:
 ```bash
-python setup_and_run.py --port 5000 --host 0.0.0.0
+npm install
 ```
 
-### Option 3: Platform-Specific Scripts
+3. Set up environment variables:
 ```bash
-# Linux/macOS
-./setup_and_run.sh
+cp .env.example .env
+```
+Edit `.env` and add your API keys:
+- `OPENAI_API_KEY`: Your OpenAI API key for game analysis
+- `ODDS_API_KEY`: Your The Odds API key (optional - has fallback)
 
+4. Start the development server:
+```bash
 # Windows
-setup_and_run.bat
+$env:Path = "C:\Program Files\nodejs;" + $env:Path; $env:NODE_ENV = "development"; npx tsx server/index.ts
+
+# macOS/Linux  
+npm run dev
 ```
 
-**📖 For detailed setup instructions, see: [COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)**
+5. Open your browser to `http://localhost:5000`
 
-## ✨ Features
+### Initial Data Setup
 
-- **🤖 NFL Game Predictions**: Machine learning algorithms predict game outcomes
-- **📱 Reddit Sentiment Analysis**: Analyzes 100+ posts/comments per hour from r/nfl and r/NFLbets
-- **🔌 Multiple API Integration**: 
-  - ESPN API for live game data and scores
-  - Reddit API for sentiment analysis (public endpoints)
-  - BallDontLie API for enhanced sports statistics
-- **📊 Interactive Dashboard**: Real-time dashboard with predictions and analysis
-- **📈 Historical Tracking**: Prediction accuracy and performance analytics
-- **⚡ Background Processing**: Automated data collection and analysis
-- **🛡️ Production Ready**: Virtual environment isolation and robust error handling
+1. Navigate to the dashboard
+2. Click "Refresh Data" to fetch current NFL week data
+3. The system will automatically fetch games, team stats, odds, and generate AI analysis
 
-## 🛠️ Manual Installation (If Automated Scripts Fail)
+## API Endpoints
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/kristianyonuel/NFLPicks.git
-   cd NFLPicks
-   ```
+- `GET /api/games/:week/:season` - Get games for a specific week
+- `POST /api/refresh/:week/:season` - Refresh all data for a week
+- `GET /api/teams` - Get all NFL teams
+- `GET /api/summary/:week/:season` - Get week summary statistics
 
-2. **Create virtual environment:**
-   ```bash
-   python -m venv nflpicks_env
-   
-   # Activate (Windows)
-   nflpicks_env\Scripts\activate
-   
-   # Activate (Linux/macOS)
-   source nflpicks_env/bin/activate
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
-
-4. **Initialize database:**
-   ```bash
-   python recreate_db.py
-   ```
-
-5. **Run application:**
-   ```bash
-   python app.py --host 0.0.0.0 --port 5000
-   ```
-
-6. **Access the application:**
-   Open `http://localhost:5000` in your browser
-
-## 🔧 Configuration
-
-### API Keys
-Edit `config.py` to add your API keys:
-```python
-BALLDONTLIE_API_KEY = 'your_api_key_here'
-```
-
-### Command Line Options
-```bash
-python app.py --help
-```
-
-Available options:
-- `--port PORT`: Port number (default: 5000)
-- `--host HOST`: Host address (default: 0.0.0.0)  
-- `--debug`: Enable debug mode
-
-## 📁 Project Structure
+## Project Structure
 
 ```
-NFLPicks/
-├── app/
-│   ├── analysis/
-│   │   └── predictor.py          # ML prediction logic
-│   ├── api_handlers/
-│   │   ├── espn_api.py          # ESPN API integration
-│   │   ├── reddit_api.py        # Reddit sentiment analysis
-│   │   └── balldontlie_api.py   # BallDontLie API integration
-│   ├── main/
-│   │   ├── __init__.py
-│   │   └── routes.py            # Flask routes and endpoints
-│   ├── models/
-│   │   ├── game.py              # Game data model
-│   │   └── prediction.py       # Prediction data model
-│   ├── static/
-│   │   ├── css/main.css         # Modern responsive styling
-│   │   └── js/interactive.js    # Interactive dashboard features
-│   ├── templates/
-│   │   ├── base.html            # Base template
-│   │   └── dashboard.html       # Main dashboard interface
-│   └── __init__.py              # Flask app factory
-├── setup_and_run.py             # Cross-platform setup script
-├── setup_and_run.sh             # Linux/macOS setup script  
-├── setup_and_run.bat            # Windows setup script
-├── launch.py                    # Universal launcher
-├── config.py                    # Application configuration
-├── app.py                       # Flask application entry point
-├── requirements.txt             # Python dependencies
-├── recreate_db.py              # Database initialization
-├── COMPLETE_SETUP_GUIDE.md     # Comprehensive setup guide
-└── README.md                   # This file
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/    # UI components
+│   │   ├── pages/         # Page components  
+│   │   ├── hooks/         # Custom React hooks
+│   │   └── lib/           # Utilities
+├── server/                # Express.js backend
+│   ├── services/          # External API integrations
+│   ├── routes.ts          # API route handlers
+│   ├── storage.ts         # Database operations
+│   └── index.ts           # Server entry point
+├── shared/                # Shared TypeScript schemas
+└── package.json           # Dependencies and scripts
 ```
 
-## 🌐 API Endpoints
+## Configuration
 
-Once running, access these endpoints:
+The application supports several environment variables in `.env`:
 
-- **Main Dashboard**: `http://localhost:5000/`
-- **API Status**: `http://localhost:5000/api/status`
-- **Reddit Analysis**: `http://localhost:5000/api/reddit/analysis`
-- **Reddit Picks**: `http://localhost:5000/api/reddit-picks`
-- **Game Predictions**: `http://localhost:5000/api/predictions`
-- **Refresh Scores**: `http://localhost:5000/api/refresh_scores`
-- **Weekly Picks**: `http://localhost:5000/weekly_picks`
-- **Analysis Stats**: `http://localhost:5000/analysis`
+- `NODE_ENV`: Development environment (development/production)
+- `PORT`: Server port (default: 5000)  
+- `OPENAI_API_KEY`: Required for AI game analysis
+- `ODDS_API_KEY`: Optional for betting odds (has mock fallback)
 
-## 🚀 Deployment
+## Development
 
-### Production Deployment
-See [COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md) for:
-- Remote server setup
-- Security configuration  
-- Process management
-- Monitoring and logging
+### Available Scripts
 
-### Development Mode
-```bash
-python app.py --debug --host 127.0.0.1 --port 5000
-```
+- `npm run dev`: Start development server
+- `npm run build`: Build for production
+- `npm run preview`: Preview production build
 
-## 🔍 Troubleshooting
+### Key Features for Development
 
-**Common Issues:**
+- **Hot Module Replacement**: Instant updates during development
+- **TypeScript**: Full type safety across frontend and backend
+- **Mock Data Systems**: Reliable fallbacks when external APIs fail
+- **Error Handling**: Comprehensive error handling and logging
+- **SSL Certificate Handling**: Configured for external API SSL issues
 
-1. **Port in use**: Use `--port 8080` or kill existing process
-2. **Module not found**: Ensure virtual environment is activated
-3. **Database errors**: Run `python recreate_db.py`
-4. **Permission denied**: Make scripts executable with `chmod +x`
+## Deployment
 
-**For detailed troubleshooting, see: [COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)**
+The application can be deployed to any Node.js hosting platform:
 
-## 📊 Background Processing
+1. Build the application: `npm run build`
+2. Set environment variables on your hosting platform
+3. Start the server: `node dist/server/index.js`
 
-The application runs several background processes for data collection and analysis:
+Popular deployment options:
+- Vercel
+- Netlify
+- Railway
+- Heroku
+- DigitalOcean App Platform
 
-### 🤖 Machine Learning Predictions
-- Uses Random Forest algorithm with historical NFL data
-- Factors include team statistics, recent performance, and sentiment analysis
-- Continuously improves accuracy with new game data
-- Provides confidence scores for each prediction
+## API Keys Setup
 
-### 📱 Reddit Sentiment Analysis
-- Analyzes 100+ posts/comments per hour from r/nfl and r/NFLbets
-- Extracts team mentions and confidence indicators
-- Provides crowd-sourced predictions and sentiment scores
-- Caches results for improved performance
+### OpenAI API Key
+1. Visit [OpenAI API](https://platform.openai.com/api-keys)
+2. Create an account and generate an API key
+3. Add to `.env` as `OPENAI_API_KEY`
 
-### 📊 Data Processing
-- Automatic ESPN API updates for live scores
-- Background Reddit sentiment processing
-- Database optimization and cleanup
-- Performance monitoring and analytics
+### The Odds API Key (Optional)
+1. Visit [The Odds API](https://the-odds-api.com/)
+2. Sign up for a free account
+3. Add to `.env` as `ODDS_API_KEY`
 
-## 🏆 Interactive Dashboard Features
+Note: The application includes mock data systems, so external API keys are optional for testing.
 
-- **Real-time Predictions**: Live ML predictions with confidence scores
-- **Reddit Community Picks**: Crowd-sourced predictions from Reddit
-- **Sentiment Analysis**: Team sentiment tracking from social media
-- **Historical Accuracy**: Track prediction performance over time
-- **Responsive Design**: Optimized for mobile and desktop
-
-## 🔄 Updates and Maintenance
-
-To update the application:
-```bash
-cd NFLPicks
-git pull origin main
-source nflpicks_env/bin/activate  # or nflpicks_env\Scripts\activate on Windows
-pip install -r requirements.txt
-python recreate_db.py  # Only if database schema changed
-```
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit changes: `git commit -m 'Add feature'`
+4. Push to branch: `git push origin feature-name`
+5. Submit a pull request
 
-## 📝 License
+## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
 
-## ⚠️ Disclaimer
+## Support
 
-This application is for educational and entertainment purposes only. Sports betting involves risk and should be done responsibly. This tool does not guarantee prediction accuracy and should not be used as the sole basis for any financial decisions.
-
-## 🙏 Acknowledgments
-
-- ESPN API for comprehensive NFL data
-- Reddit community for sentiment data
-- BallDontLie API for additional statistics
-- Flask and Python ecosystem for robust web framework
-
----
-
-**🚀 Ready to start? Run `python launch.py` and visit http://localhost:5000**
+For support, please open an issue on the GitHub repository.
