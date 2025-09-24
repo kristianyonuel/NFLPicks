@@ -66,13 +66,14 @@ export class MemStorage implements IStorage {
     this.aiPredictions = new Map();
     this.expertAdvice = new Map();
     this.teamStats = new Map();
-    
+
     // Initialize with current NFL teams and sample data
     this.initializeTeams();
     this.initializeSampleData();
-  }
-
-  private initializeTeams() {
+    
+    // Also generate data for current week automatically
+    setTimeout(() => this.initializeCurrentWeekData(), 100);
+  }  private initializeTeams() {
     const nflTeams = [
       { id: "DAL", name: "Cowboys", abbreviation: "DAL", city: "Dallas", conference: "NFC", division: "East", primaryColor: "#002244" as string | null, secondaryColor: "#869397" as string | null },
       { id: "WAS", name: "Commanders", abbreviation: "WAS", city: "Washington", conference: "NFC", division: "East", primaryColor: "#773141" as string | null, secondaryColor: "#FFB612" as string | null },
@@ -464,6 +465,53 @@ export class MemStorage implements IStorage {
     
     for (const advice of week12Advice) {
       await this.createExpertAdvice(advice);
+    }
+  }
+
+  private getCurrentNFLWeek(): { week: number; season: number } {
+    const now = new Date();
+    const year = now.getFullYear();
+    
+    // NFL season typically starts first Thursday after Labor Day (first Monday in September)
+    // For 2024 season, Week 1 started September 5, 2024
+    const season2024Start = new Date('2024-09-05');
+    const season2025Start = new Date('2025-09-04'); // Estimated
+    
+    let seasonStart: Date;
+    let season: number;
+    
+    if (now >= season2025Start) {
+      seasonStart = season2025Start;
+      season = 2025;
+    } else if (now >= season2024Start) {
+      seasonStart = season2024Start;
+      season = 2024;
+    } else {
+      // Default to previous season
+      seasonStart = new Date('2023-09-07');
+      season = 2023;
+    }
+    
+    // Calculate weeks since season start
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    const weeksSinceStart = Math.floor((now.getTime() - seasonStart.getTime()) / msPerWeek);
+    
+    // NFL has 18 weeks in regular season, then playoffs
+    const week = Math.min(Math.max(weeksSinceStart + 1, 1), 18);
+    
+    return { week, season };
+  }
+
+  private async initializeCurrentWeekData() {
+    const currentWeek = this.getCurrentNFLWeek();
+    
+    // Only generate if we don't already have data for current week
+    const existingGames = await this.getGamesByWeek(currentWeek.week, currentWeek.season);
+    if (existingGames.length === 0) {
+      console.log(`🏈 Initializing data for current NFL Week ${currentWeek.week}, ${currentWeek.season}`);
+      await this.generateMockWeekData(currentWeek.week, currentWeek.season);
+    } else {
+      console.log(`✅ Data already exists for current NFL Week ${currentWeek.week}, ${currentWeek.season}`);
     }
   }
 
