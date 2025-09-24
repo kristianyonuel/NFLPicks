@@ -26,21 +26,21 @@ interface IntelligenceTabProps {
 }
 
 interface GameIntelligence {
-  game: GameWithDetails;
+  game: any;
   teams: {
     home: any;
     away: any;
   };
-  intelligence: any;
-  weather: any;
-  betting: any;
-  sentiment: {
-    home: any;
-    away: any;
+  intelligence?: any;
+  weather?: any;
+  betting?: any;
+  sentiment?: {
+    home?: any;
+    away?: any;
   };
-  injuries: {
-    home: any;
-    away: any;
+  injuries?: {
+    home?: any;
+    away?: any;
   };
 }
 
@@ -238,6 +238,37 @@ function IntelligenceDetails({ intelligence }: IntelligenceDetailsProps) {
     );
   }
 
+  // Check if we have any intelligence data at all
+  const hasIntelligenceData = gameIntel || weather || betting || 
+    (sentiment && (sentiment.home || sentiment.away)) ||
+    (injuries && (injuries.home || injuries.away));
+
+  if (!hasIntelligenceData) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-semibold mb-2">No Intelligence Data Generated</h3>
+            <p className="text-muted-foreground mb-4">
+              This game hasn't been analyzed yet. Generate enhanced intelligence to see:
+            </p>
+            <div className="text-sm text-muted-foreground mb-6 space-y-1">
+              <div>• Reddit fan sentiment analysis</div>
+              <div>• Weather impact predictions</div>
+              <div>• Betting market intelligence</div>
+              <div>• AI-powered game insights</div>
+              <div>• Injury report analysis</div>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Use the "Enhance" button in the game list to generate comprehensive analysis.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Game Header */}
@@ -256,7 +287,7 @@ function IntelligenceDetails({ intelligence }: IntelligenceDetailsProps) {
       </Card>
 
       {/* Sentiment Analysis */}
-      {(sentiment.home || sentiment.away) && (
+      {(sentiment?.home || sentiment?.away) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
